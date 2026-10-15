@@ -17,15 +17,17 @@ export function computeMetorics(records) {
   const judged = total - tbd;
   const refund = records.reduce((s, r) => s + n(r.refund), 0);
   const comp = records.reduce((s, r) => s + n(r.comp), 0);
+  const logistics = records.reduce((s, r) => s + n(r.logistics), 0);
   const saved = records.reduce((s, r) => s + n(r.saved), 0);
+  const cost = refund + comp + logistics;
   const fakeRejected = records.filter((r) => r.nature === '疑似碰瓷' && r.result === '自证驳回').length;
   const noProof = records.filter((r) => r.proof === '无留档').length;
   const badReview = records.filter((r) => r.review === '是').length;
   return {
     total, real, fake, tbd, judged,
     fakePct: judged > 0 ? fake / judged : 0,
-    refund, comp, saved, badReview,
-    unitRealCost: real > 0 ? (refund + comp) / real : 0,
+    refund, comp, logistics, cost, saved, badReview,
+    unitRealCost: real > 0 ? (refund + comp + logistics) / real : 0,
     fakeRejected,
     selfProveRate: fake > 0 ? fakeRejected / fake : 0,
     fakeSaved: records.filter((r) => r.nature === '疑似碰瓷').reduce((s, r) => s + n(r.saved), 0),
@@ -142,7 +144,7 @@ function renderMonthly(records) {
     if (!/^\d{4}-\d{2}$/.test(k)) continue;
     if (!map[k]) map[k] = { cnt: 0, cost: 0, saved: 0 };
     map[k].cnt += 1;
-    map[k].cost += n(r.refund) + n(r.comp);
+    map[k].cost += n(r.refund) + n(r.comp) + n(r.logistics);
     map[k].saved += n(r.saved);
   }
   const keys = Object.keys(map).sort().slice(-12);
@@ -172,6 +174,8 @@ export function renderDashboard(records) {
     [fmtPct(m.fakePct), '疑似碰瓷占比（占已定性）', 'pct'],
     [fmtMoney(m.refund), '退款总额', 'money'],
     [fmtMoney(m.comp), '赔付总额', 'money'],
+    [fmtMoney(m.logistics), '物流费用总额', 'money'],
+    [fmtMoney(m.cost), '售后总成本（退款+赔付+物流）', 'money'],
     [fmtMoney(m.unitRealCost), '单真实客诉成本', 'money'],
     [fmtMoney(m.saved), '自证挽回金额', 'money good'],
     [m.badReview, '产生差评数'],
