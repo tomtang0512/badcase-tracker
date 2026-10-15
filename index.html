@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>食安售后 Bad Case 记录台</title>
+  <link rel="stylesheet" href="./css/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <span class="brand-dot"></span>
+        <h1>食安售后 Bad Case 记录台</h1>
+      </div>
+      <nav class="tabs" id="tabs">
+        <button class="tab active" data-tab="dashboard">看板</button>
+        <button class="tab" data-tab="records">明细记录</button>
+      </nav>
+      <div class="data-menu">
+        <button class="btn ghost" id="btn-export-json" title="导出全部数据用于备份/迁移">导出JSON</button>
+        <button class="btn ghost" id="btn-export-csv" title="导出CSV，可用Excel打开">导出CSV</button>
+        <button class="btn ghost" id="btn-import">导入</button>
+        <button class="btn ghost" id="btn-demo" title="载入3条示例数据，方便了解功能">示例数据</button>
+        <button class="btn danger ghost" id="btn-clear">清空</button>
+        <input type="file" id="file-input" accept=".json,.csv" hidden />
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- ================= 看板 ================= -->
+    <section id="view-dashboard" class="view active">
+      <div class="card">
+        <h2 class="card-title">一、核心指标</h2>
+        <div class="kpi-grid" id="kpi-grid"></div>
+      </div>
+
+      <div class="card">
+        <h2 class="card-title">二、防碰瓷自证专项</h2>
+        <div class="kpi-grid small" id="kpi-anti"></div>
+      </div>
+
+      <div class="card">
+        <h2 class="card-title">三、按月趋势</h2>
+        <div class="month-chart" id="month-chart"></div>
+        <div class="table-wrap">
+          <table class="data-table" id="month-table">
+            <thead>
+              <tr><th>月份</th><th>单数</th><th>退款+赔付(元)</th><th>挽回金额(元)</th></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="dist-grid">
+        <div class="card"><h2 class="card-title">四、投诉类型分布</h2><div class="dist-list" id="dist-type"></div></div>
+        <div class="card"><h2 class="card-title">五、四维归因分布（主因）</h2><div class="dist-list" id="dist-cause"></div></div>
+        <div class="card"><h2 class="card-title">六、处理结果分布</h2><div class="dist-list" id="dist-result"></div></div>
+      </div>
+    </section>
+
+    <!-- ================= 明细 ================= -->
+    <section id="view-records" class="view">
+      <div class="card">
+        <div class="records-toolbar">
+          <h2 class="card-title">明细记录 <span class="rec-count" id="rec-count"></span></h2>
+          <div class="filters">
+<select id="filter-nature"><option value="">全部定性</option></select>
+<select id="filter-group"><option value="">全部大类</option></select>
+<select id="filter-type" disabled><option value="">先选大类</option></select>
+            <input type="search" id="filter-text" placeholder="搜描述/订单号/备注…" />
+            <button class="btn primary" id="btn-add">+ 新增记录</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table records-table">
+            <thead>
+              <tr>
+                <th data-fcol="date">日期</th><th data-fcol="type">类型</th><th data-fcol="nature">定性</th><th data-fcol="cause">归因</th><th data-fcol="proof">留档</th><th data-fcol="result">结果</th>
+                <th class="num">退款</th><th class="num">赔付</th><th class="num">挽回</th><th data-fcol="review">差评</th><th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="records-body"></tbody>
+          </table>
+        </div>
+        <div class="empty-hint" id="empty-hint" hidden>
+          还没有记录。点右上角「示例数据」看看效果，或「+ 新增记录」开始使用。
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ================= 录入/编辑 弹窗 ================= -->
+  <div class="modal-mask" id="modal-mask" hidden>
+    <div class="modal">
+      <h2 class="modal-title" id="modal-title">新增 Bad Case 记录</h2>
+      <form id="record-form">
+        <div class="form-grid">
+          <label>发生日期 <i>*</i>
+            <input type="date" name="date" required />
+          </label>
+          <label>问题大类 <i>*</i>
+            <select name="typeGroup" id="type-group" required></select>
+          </label>
+          <label>具体类型 <i>*</i>
+            <select name="typeItem" id="type-item" required disabled>
+              <option value="">先选大类</option>
+            </select>
+          </label>
+          <label class="full">问题描述
+            <textarea name="desc" rows="2" placeholder="发生了什么、用户诉求是什么"></textarea>
+          </label>
+          <label>定性 <i>*</i>
+            <select name="nature" data-options="nature" required></select>
+          </label>
+          <label>归因维度（主因）
+            <select name="cause" data-options="cause"></select>
+          </label>
+          <label>留档证据
+            <select name="proof" data-options="proof"></select>
+          </label>
+          <label>处理结果
+            <select name="result" data-options="result"></select>
+          </label>
+          <label>退款金额(元)
+            <input type="number" name="refund" step="0.1" min="0" value="0" />
+          </label>
+          <label>赔付金额(元)
+            <input type="number" name="comp" step="0.1" min="0" value="0" />
+          </label>
+          <label>挽回金额(元)
+            <input type="number" name="saved" step="0.1" min="0" value="0" />
+            <span class="field-hint">仅疑似碰瓷单填：若无证据，这单大概要赔多少</span>
+          </label>
+          <label>是否差评
+            <select name="review" data-options="review"></select>
+          </label>
+          <label>订单号
+            <input type="text" name="orderId" placeholder="选填" />
+          </label>
+          <label class="full">备注 / 沟通记录
+            <textarea name="note" rows="2" placeholder="选填"></textarea>
+          </label>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn ghost" id="btn-cancel">取消</button>
+          <button type="submit" class="btn primary">保存</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" hidden></div>
+  <footer class="page-foot">数据保存在本机浏览器（localStorage），换设备或清缓存前请先「导出JSON」备份。</footer>
+
+  <script type="module" src="./js/app.js"></script>
+</body>
+</html>
