@@ -87,6 +87,9 @@ export function normalizeRecord(raw) {
     saved: num(raw.saved),
     orderId: String(raw.orderId || ''),
     channel: pick(raw.channel, 'channel') || raw.channel || '',
+    photos: Array.isArray(raw.photos)
+      ? raw.photos.filter((p) => typeof p === 'string' && p.startsWith('data:image/')).slice(0, 9)
+      : [],
     review: raw.review === '是' ? '是' : '否',
     note: String(raw.note || ''),
     updatedAt: new Date().toISOString(),
