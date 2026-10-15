@@ -32,6 +32,22 @@
     <!-- ================= 看板 ================= -->
     <section id="view-dashboard" class="view active">
       <div class="card">
+        <div class="date-filter">
+          <span class="df-label">统计范围</span>
+          <select id="range-preset">
+            <option value="all">全部时间</option>
+            <option value="month">本月</option>
+            <option value="d30">近30天</option>
+            <option value="d90">近90天</option>
+            <option value="custom">自定义</option>
+          </select>
+          <input type="date" id="range-start" disabled />
+          <span class="df-sep">~</span>
+          <input type="date" id="range-end" disabled />
+        </div>
+      </div>
+
+      <div class="card">
         <h2 class="card-title">一、核心指标</h2>
         <div class="kpi-grid" id="kpi-grid"></div>
       </div>
