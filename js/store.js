@@ -87,6 +87,7 @@ export function normalizeRecord(raw) {
     saved: num(raw.saved),
     orderId: String(raw.orderId || ''),
     channel: pick(raw.channel, 'channel') || raw.channel || '',
+    logistics: Math.round((Number(raw.logistics) || 0) * 10) / 10,
     photos: Array.isArray(raw.photos)
       ? raw.photos.filter((p) => typeof p === 'string' && p.startsWith('data:image/')).slice(0, 9)
       : [],
@@ -101,21 +102,21 @@ export const DEMO_DATA = [
     id: 'demo1', date: '2026-09-08', type: '异物-毛发', channel: '域内',
     desc: '用户反馈卤鸡腿内有毛发（示例数据，正式使用前可清空）',
     nature: '真实客诉', cause: '人', proof: '品牌封口贴照片', result: '仅退款',
-    refund: 28.9, comp: 0, saved: 0, orderId: '20260908#1', review: '否',
+    refund: 28.9, comp: 0, logistics: 0, saved: 0, orderId: '20260908#1', review: '否',
     note: '已道歉并退款，全员重申帽子手套规范',
   },
   {
     id: 'demo2', date: '2026-09-12', type: '异物-塑料/纸片', channel: '小红书',
     desc: '用户称袋内有塑料片，但封口贴完好、与出货照片不符（示例数据）',
     nature: '疑似碰瓷', cause: '待归因', proof: '多项留档', result: '自证驳回',
-    refund: 0, comp: 0, saved: 45, orderId: '20260912#1', review: '否',
+    refund: 0, comp: 0, logistics: 0, saved: 45, orderId: '20260912#1', review: '否',
     note: '出示封口贴+出货照片后用户撤诉',
   },
   {
     id: 'demo3', date: '2026-09-15', type: '品质-变质/异味', channel: '健身房',
     desc: '冷链配送延迟导致鲜奶变质（示例数据）',
     nature: '真实客诉', cause: '操作', proof: '商品照片/视频', result: '退款+赔付',
-    refund: 39.9, comp: 100, saved: 0, orderId: '20260915#2', review: '是',
+    refund: 39.9, comp: 100, logistics: 12, saved: 0, orderId: '20260915#2', review: '是',
     note: '全额退款+100红包，追查该时段配送',
   },
 ];
