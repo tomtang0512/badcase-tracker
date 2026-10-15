@@ -1,9 +1,9 @@
 import { save, normalizeRecord } from './store.js';
 
 const CSV_HEADERS = ['id', '发生日期', '渠道', '投诉类型', '问题描述', '定性', '归因维度', '留档证据', '处理结果',
-  '退款金额', '赔付金额', '挽回金额', '订单编号', '是否差评', '备注'];
+  '退款金额', '赔付金额', '物流费用', '挽回金额', '订单编号', '是否差评', '备注'];
 const CSV_KEYS = ['id', 'date', 'channel', 'type', 'desc', 'nature', 'cause', 'proof', 'result',
-  'refund', 'comp', 'saved', 'orderId', 'review', 'note'];
+  'refund', 'comp', 'logistics', 'saved', 'orderId', 'review', 'note'];
 
 function todayStamp() {
   const d = new Date();
