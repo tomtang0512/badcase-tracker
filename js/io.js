@@ -1,8 +1,8 @@
 import { save, normalizeRecord } from './store.js';
 
-const CSV_HEADERS = ['id', '发生日期', '投诉类型', '问题描述', '定性', '归因维度', '留档证据', '处理结果',
-  '退款金额', '赔付金额', '挽回金额', '订单号', '是否差评', '备注'];
-const CSV_KEYS = ['id', 'date', 'type', 'desc', 'nature', 'cause', 'proof', 'result',
+const CSV_HEADERS = ['id', '发生日期', '渠道', '投诉类型', '问题描述', '定性', '归因维度', '留档证据', '处理结果',
+  '退款金额', '赔付金额', '挽回金额', '订单编号', '是否差评', '备注'];
+const CSV_KEYS = ['id', 'date', 'channel', 'type', 'desc', 'nature', 'cause', 'proof', 'result',
   'refund', 'comp', 'saved', 'orderId', 'review', 'note'];
 
 function todayStamp() {
@@ -76,7 +76,7 @@ export function parseImportFile(filename, text) {
     return rows.slice(1).map((cols) => {
       const get = (k) => (idx[k] > -1 ? cols[idx[k]] : '');
       return normalizeRecord({
-        id: get('id'), date: get('date'), type: get('type'), desc: get('desc'),
+        id: get('id'), date: get('date'), channel: get('channel'), type: get('type'), desc: get('desc'),
         nature: get('nature'), cause: get('cause'), proof: get('proof'), result: get('result'),
         refund: get('refund'), comp: get('comp'), saved: get('saved'),
         orderId: get('orderId'), review: get('review'), note: get('note'),
