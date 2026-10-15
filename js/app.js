@@ -15,9 +15,48 @@ function toast(msg) {
 }
 
 function refreshAll() {
-  renderDashboard(list());
+  renderDashboard(list().filter(inRange));
   renderRecords(list());
 }
+
+// ---------- 看板日期筛选 ----------
+const rangePreset = $('#range-preset');
+const rangeStart = $('#range-start');
+const rangeEnd = $('#range-end');
+
+function fmtDate(d) {
+  const p = (x) => String(x).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+}
+
+function applyPreset() {
+  const v = rangePreset.value;
+  const custom = v === 'custom';
+  rangeStart.disabled = !custom;
+  rangeEnd.disabled = !custom;
+  rangeStart.value = '';
+  rangeEnd.value = '';
+  if (custom || v === 'all') return;
+  const now = new Date();
+  if (v === 'month') {
+    rangeStart.value = fmtDate(new Date(now.getFullYear(), now.getMonth(), 1));
+  } else if (v === 'd30') {
+    const d = new Date(now); d.setDate(d.getDate() - 29); rangeStart.value = fmtDate(d);
+  } else if (v === 'd90') {
+    const d = new Date(now); d.setDate(d.getDate() - 89); rangeStart.value = fmtDate(d);
+  }
+  rangeEnd.value = fmtDate(now);
+}
+
+function inRange(r) {
+  const s = rangeStart.value, e = rangeEnd.value;
+  if (s && String(r.date) < s) return false;
+  if (e && String(r.date) > e) return false;
+  return true;
+}
+
+rangePreset.addEventListener('change', () => { applyPreset(); refreshAll(); });
+[rangeStart, rangeEnd].forEach((i) => i.addEventListener('change', () => refreshAll()));
 
 // ---------- Tab 切换 ----------
 $('#tabs').addEventListener('click', (e) => {
