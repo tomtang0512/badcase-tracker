@@ -96,15 +96,65 @@ function openModal(rec) {
   $('#modal-title').textContent = rec ? '编辑 Bad Case 记录' : '新增 Bad Case 记录';
   const pt = rec ? parseType(rec.type) : { group: '', item: '' };
   setType(pt.group, pt.item);
+  pendingPhotos = rec && Array.isArray(rec.photos) ? [...rec.photos] : [];
+  renderPhotoPreviews();
   for (const el of form.elements) {
-    if (!el.name || el.name === 'typeGroup' || el.name === 'typeItem') continue;
+    if (!el.name || el.name === 'typeGroup' || el.name === 'typeItem' || el.type === 'file') continue;
     if (el.name === 'review' && !rec) el.value = '否';
     else el.value = rec ? (rec[el.name] ?? '') : (el.defaultValue !== undefined && el.type === 'number' ? '0' : '');
   }
   modal.hidden = false;
   form.elements.date.focus();
 }
-function closeModal() { modal.hidden = true; form.reset(); editingId = null; }
+function closeModal() { modal.hidden = true; form.reset(); editingId = null; pendingPhotos = []; renderPhotoPreviews(); }
+
+// ---------- 照片：选择/压缩/预览 ----------
+let pendingPhotos = [];
+const photoInput = form.elements.photos;
+const previewBox = $('#photo-previews');
+
+function compressImage(file) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      const MAX = 1280;
+      let w = img.naturalWidth, h = img.naturalHeight;
+      if (Math.max(w, h) > MAX) { const k = MAX / Math.max(w, h); w = Math.round(w * k); h = Math.round(h * k); }
+      const c = document.createElement('canvas');
+      c.width = w; c.height = h;
+      c.getContext('2d').drawImage(img, 0, 0, w, h);
+      URL.revokeObjectURL(url);
+      resolve(c.toDataURL('image/jpeg', 0.72));
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('图片读取失败')); };
+    img.src = url;
+  });
+}
+
+function renderPhotoPreviews() {
+  previewBox.innerHTML = pendingPhotos.map((p, i) => `
+    <span class="photo-thumb">
+      <img src="${p}" alt="照片${i + 1}" data-i="${i}" />
+      <button type="button" class="thumb-del" data-del="${i}" title="移除">×</button>
+    </span>`).join('');
+}
+photoInput.addEventListener('change', async () => {
+  const files = [...photoInput.files].slice(0, 9 - pendingPhotos.length);
+  if (files.length === 0) { toast('每单最多 9 张照片'); photoInput.value = ''; return; }
+  for (const f of files) {
+    try { pendingPhotos.push(await compressImage(f)); }
+    catch { toast('有一张照片读取失败，已跳过'); }
+  }
+  photoInput.value = '';
+  renderPhotoPreviews();
+});
+previewBox.addEventListener('click', (e) => {
+  const del = e.target.closest('[data-del]');
+  if (del) { pendingPhotos.splice(Number(del.dataset.del), 1); renderPhotoPreviews(); }
+  const img = e.target.closest('img[data-i]');
+  if (img) openLightbox([pendingPhotos[Number(img.dataset.i)]]);
+});
 
 $('#btn-add').addEventListener('click', () => openModal(null));
 $('#btn-cancel').addEventListener('click', closeModal);
@@ -118,6 +168,7 @@ form.addEventListener('submit', (e) => {
     data[el.name] = el.type === 'number' ? (parseFloat(el.value) || 0) : el.value.trim();
   }
   data.type = fullType(groupSel.value, itemSel.value);
+  data.photos = pendingPhotos;
   if (!data.date || !data.type || !data.nature) { toast('请填写日期、问题大类与具体类型、定性'); return; }
   // 订单编号留空时自动生成：日期#当天第几单
   if (!data.orderId) {
@@ -127,8 +178,13 @@ form.addEventListener('submit', (e) => {
     data.orderId = `${prefix}${n}`;
   }
   const rec = normalizeRecord(data);
-  if (editingId) replace(editingId, rec);
-  else add(rec);
+  try {
+    if (editingId) replace(editingId, rec);
+    else add(rec);
+  } catch {
+    toast('保存失败：照片太多，超出浏览器存储上限，请删减照片后重试');
+    return;
+  }
   closeModal();
   refreshAll();
   toast(editingId ? '已更新' : '已保存');
@@ -142,6 +198,9 @@ $('#records-body').addEventListener('click', (e) => {
   if (e.target.classList.contains('act-edit')) {
     const rec = getById(id);
     if (rec) openModal(rec);
+  } else if (e.target.classList.contains('act-photo')) {
+    const rec = getById(id);
+    if (rec && rec.photos && rec.photos.length) openLightbox(rec.photos);
   } else if (e.target.classList.contains('act-del')) {
     if (confirm('确定删除这条记录吗？删除后不可恢复。')) {
       remove(id);
@@ -150,6 +209,15 @@ $('#records-body').addEventListener('click', (e) => {
     }
   }
 });
+
+// ---------- 照片查看器 ----------
+const lightbox = $('#lightbox');
+const lightboxBody = $('#lightbox-body');
+function openLightbox(photos) {
+  lightboxBody.innerHTML = photos.map((p) => `<img src="${p}" alt="照片" />`).join('');
+  lightbox.hidden = false;
+}
+lightbox.addEventListener('click', (e) => { if (e.target === lightbox || e.target === lightboxBody) lightbox.hidden = true; });
 
 // ---------- 筛选 ----------
 $('#filter-nature').addEventListener('change', () => renderRecords(list()));
