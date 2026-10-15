@@ -177,6 +177,7 @@ function recRow(r) {
     <td>${esc(r.result || '-')}</td>
     <td class="num">${money(r.refund, true)}</td>
     <td class="num">${money(r.comp, true)}</td>
+    <td class="num">${money(r.logistics, true)}</td>
     <td class="num">${money(r.saved, false)}</td>
     <td>${r.review === '是' ? '<span class="tag review">差评</span>' : '-'}</td>
     <td>
