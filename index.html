@@ -95,7 +95,7 @@
             <thead>
               <tr>
                 <th data-fcol="date">日期</th><th data-fcol="channel">渠道</th><th data-fcol="type">类型</th><th data-fcol="nature">定性</th><th data-fcol="cause">归因</th><th data-fcol="proof">留档</th><th data-fcol="result">结果</th>
-                <th class="num">退款</th><th class="num">赔付</th><th class="num">挽回</th><th data-fcol="review">差评</th><th>操作</th>
+                <th class="num">退款</th><th class="num">赔付</th><th class="num">物流</th><th class="num">挽回</th><th data-fcol="review">差评</th><th>操作</th>
               </tr>
             </thead>
             <tbody id="records-body"></tbody>
@@ -163,6 +163,10 @@
           <label>订单编号
             <input type="text" name="orderId" placeholder="留空自动生成" />
             <span class="field-hint">规则：日期#当天第几单，如 20261015#3</span>
+          </label>
+          <label>物流费用(元)
+            <input type="number" name="logistics" step="0.1" min="0" value="0" />
+            <span class="field-hint">因本单售后产生的运费（退件/补发等）</span>
           </label>
           <label class="full">备注 / 沟通记录
             <textarea name="note" rows="2" placeholder="选填"></textarea>
