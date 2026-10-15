@@ -127,6 +127,10 @@
           <label>处理结果
             <select name="result" data-options="result"></select>
           </label>
+          <label class="full">照片（可选，可多选，自动压缩）
+            <input type="file" name="photos" accept="image/*" multiple />
+            <div class="photo-previews" id="photo-previews"></div>
+          </label>
           <label>退款金额(元)
             <input type="number" name="refund" step="0.1" min="0" value="0" />
           </label>
@@ -155,6 +159,8 @@
       </form>
     </div>
   </div>
+
+  <div class="modal-mask" id="lightbox" hidden><div class="lightbox" id="lightbox-body"></div></div>
 
   <div class="toast" id="toast" hidden></div>
   <footer class="page-foot">数据保存在本机浏览器（localStorage），换设备或清缓存前请先「导出JSON」备份。</footer>
