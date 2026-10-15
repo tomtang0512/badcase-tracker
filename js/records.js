@@ -22,6 +22,7 @@ const NA = '（未填）';
 // 每列取值函数：决定该列筛选依据
 export const COL_VALUE = {
   date: (r) => String(r.date || '').slice(0, 7), // 按月聚合，避免日期值太多
+  channel: (r) => r.channel || NA,
   type: (r) => parseType(r.type).group, // 类型列按大类筛
   nature: (r) => r.nature || NA,
   cause: (r) => r.cause || NA,
@@ -168,6 +169,7 @@ function money(v, highlight) {
 function recRow(r) {
   return `<tr data-id="${esc(r.id)}">
     <td>${esc(r.date)}</td>
+    <td>${esc(r.channel || '-')}</td>
     <td>${esc(r.type)}</td>
     <td>${natureTag(r.nature)}</td>
     <td>${esc(r.cause || '-')}</td>
