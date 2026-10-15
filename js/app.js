@@ -34,7 +34,8 @@ function fillSelect(select, items, emptyLabel) {
     items.map((v) => `<option value="${esc(v)}">${esc(v)}</option>`).join('');
 }
 document.querySelectorAll('[data-options]').forEach((sel) => {
-  fillSelect(sel, OPTIONS[sel.dataset.options], sel.dataset.options === 'cause' || sel.dataset.options === 'proof' || sel.dataset.options === 'result' ? '' : undefined);
+  const noEmpty = sel.dataset.options === 'nature' || sel.dataset.options === 'review';
+  fillSelect(sel, OPTIONS[sel.dataset.options], noEmpty ? undefined : '');
 });
 fillSelect($('#filter-nature'), OPTIONS.nature, '全部定性');
 
@@ -118,6 +119,13 @@ form.addEventListener('submit', (e) => {
   }
   data.type = fullType(groupSel.value, itemSel.value);
   if (!data.date || !data.type || !data.nature) { toast('请填写日期、问题大类与具体类型、定性'); return; }
+  // 订单编号留空时自动生成：日期#当天第几单
+  if (!data.orderId) {
+    const d = data.date.replace(/-/g, '');
+    const prefix = `${d}#`;
+    const n = list().filter((r) => String(r.orderId || '').startsWith(prefix)).length + 1;
+    data.orderId = `${prefix}${n}`;
+  }
   const rec = normalizeRecord(data);
   if (editingId) replace(editingId, rec);
   else add(rec);
