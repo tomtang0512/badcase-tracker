@@ -173,7 +173,7 @@ function recRow(r) {
     <td>${esc(r.type)}</td>
     <td>${natureTag(r.nature)}</td>
     <td>${esc(r.cause || '-')}</td>
-    <td>${esc(r.proof || '-')}</td>
+    <td>${esc(r.proof || '-')}${r.photos && r.photos.length ? ` <button type="button" class="btn link act-photo" title="查看照片">📷${r.photos.length}</button>` : ''}</td>
     <td>${esc(r.result || '-')}</td>
     <td class="num">${money(r.refund, true)}</td>
     <td class="num">${money(r.comp, true)}</td>
