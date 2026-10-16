@@ -18,6 +18,11 @@
         <button class="tab" data-tab="records">明细记录</button>
       </nav>
       <div class="data-menu">
+        <div class="cloud-sync">
+          <span id="sync-status" class="sync-status busy">云端同步中…</span>
+          <button class="btn ghost sm" id="btn-token" title="配置 GitHub 写入令牌，配置后改动自动上传云端">同步设置</button>
+          <button class="btn ghost sm" id="btn-sync-now" title="手动把当前数据上传云端">上传云端</button>
+        </div>
         <button class="btn ghost" id="btn-export-json" title="导出全部数据用于备份/迁移">导出JSON</button>
         <button class="btn ghost" id="btn-export-csv" title="导出CSV，可用Excel打开">导出CSV</button>
         <button class="btn ghost" id="btn-import">导入</button>
@@ -183,7 +188,7 @@
   <div class="modal-mask" id="lightbox" hidden><div class="lightbox" id="lightbox-body"></div></div>
 
   <div class="toast" id="toast" hidden></div>
-  <footer class="page-foot">数据保存在本机浏览器（localStorage），换设备或清缓存前请先「导出JSON」备份。</footer>
+  <footer class="page-foot">数据实时同步自云端，任何打开本链接的人都能看到最新数据。在本机配置令牌（同步设置）后，改动会自动上传云端；也建议定期「导出JSON」备份。</footer>
 
   <script type="module" src="./js/app.js"></script>
 </body>
