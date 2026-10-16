@@ -2,6 +2,7 @@ import { list, save, add, getById, replace, remove, makeId, normalizeRecord, OPT
 import { renderDashboard } from './dashboard.js';
 import { renderRecords, esc, bindHeaderFilters } from './records.js';
 import { exportJSON, exportCSV, parseImportFile, replaceAll } from './io.js';
+import * as cloud from './cloud.js';
 
 // ---------- 工具 ----------
 const $ = (sel) => document.querySelector(sel);
@@ -18,6 +19,98 @@ function refreshAll() {
   renderDashboard(list().filter(inRange));
   renderRecords(list());
 }
+
+// ---------- 云端同步 ----------
+const syncStatus = $('#sync-status');
+
+function setSync(text, cls) {
+  syncStatus.textContent = text;
+  syncStatus.className = `sync-status ${cls || ''}`;
+}
+
+function fmtHM(iso) {
+  const d = new Date(iso);
+  const p = (x) => String(x).padStart(2, '0');
+  return `${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+
+function maxTs(rs) {
+  return rs.reduce((m, r) => Math.max(m, +new Date(r.updatedAt || 0)), 0);
+}
+
+let pushTimer = null;
+let pushing = false;
+
+async function pushNow(manual) {
+  if (!cloud.hasToken()) {
+    if (manual) toast('请先在「同步设置」里配置写入令牌');
+    else setSync('未同步：未配置令牌，改动仅存本机', 'warn');
+    return;
+  }
+  if (pushing) { if (manual) toast('正在同步中，请稍候'); return; }
+  pushing = true;
+  setSync('正在上传云端…', 'busy');
+  try {
+    const ver = await cloud.push(list());
+    cloud.setVersion(ver);
+    setSync(`已同步云端 ${fmtHM(ver)}`, 'ok');
+    if (manual) toast('已上传云端');
+  } catch (err) {
+    setSync(`同步失败：${err.message}`, 'err');
+    if (manual) toast(`同步失败：${err.message}`);
+  } finally {
+    pushing = false;
+  }
+}
+
+function schedulePush() {
+  if (!cloud.hasToken()) { setSync('只读模式：改动仅存本机', 'warn'); return; }
+  clearTimeout(pushTimer);
+  setSync('待同步…', 'busy');
+  pushTimer = setTimeout(() => pushNow(false), 1500);
+}
+
+async function bootCloud() {
+  try {
+    const data = await cloud.pull();
+    if (!data) {
+      setSync(cloud.hasToken() ? '云端暂无数据，改动后自动上传' : '云端暂无数据（只读）', 'warn');
+      if (cloud.hasToken() && list().length) schedulePush();
+      return;
+    }
+    const local = list();
+    const cloudMax = maxTs(data.records);
+    const localMax = maxTs(local);
+    // 版本不一致时采纳云端，但本地有未同步的更新时优先本地
+    const adoptEmpty = data.records.length === 0 && cloud.getVersion() && cloud.getVersion() !== data.updatedAt;
+    if (cloud.getVersion() !== data.updatedAt && (local.length === 0 || cloudMax >= localMax || adoptEmpty)) {
+      save(data.records);
+      cloud.setVersion(data.updatedAt);
+      refreshAll();
+    }
+    if (cloud.hasToken() && localMax > cloudMax && local.length > 0) {
+      // 本地比云端新（离线改动），补推
+      setSync('本地有未同步更新，正在上传…', 'busy');
+      pushNow(false);
+    } else {
+      setSync(`已同步云端 ${fmtHM(data.updatedAt)}`, 'ok');
+    }
+  } catch {
+    setSync('云端读取失败，当前展示本机数据', 'err');
+  }
+}
+
+$('#btn-token').addEventListener('click', () => {
+  const cur = cloud.getToken();
+  const hint = cur ? '已有令牌，重新输入可替换，留空并确定则清除' : '粘贴 GitHub 访问令牌（建议细粒度令牌：仅本仓库、Contents 读写权限）';
+  const t = prompt(`${hint}：`, cur);
+  if (t === null) return;
+  cloud.setToken(t.trim());
+  if (cloud.hasToken()) { toast('令牌已保存，开始同步'); schedulePush(); }
+  else { toast('令牌已清除'); setSync('只读模式', 'warn'); }
+});
+
+$('#btn-sync-now').addEventListener('click', () => pushNow(true));
 
 // ---------- 看板日期筛选 ----------
 const rangePreset = $('#range-preset');
@@ -226,6 +319,7 @@ form.addEventListener('submit', (e) => {
   }
   closeModal();
   refreshAll();
+  schedulePush();
   toast(editingId ? '已更新' : '已保存');
 });
 
@@ -244,6 +338,7 @@ $('#records-body').addEventListener('click', (e) => {
     if (confirm('确定删除这条记录吗？删除后不可恢复。')) {
       remove(id);
       refreshAll();
+      schedulePush();
       toast('已删除');
     }
   }
@@ -282,6 +377,7 @@ fileInput.addEventListener('change', () => {
       if (!ok) return;
       replaceAll(incoming);
       refreshAll();
+      schedulePush();
       toast(`已导入 ${incoming.length} 条记录`);
     } catch (err) {
       alert('导入失败：' + (err.message || err));
@@ -295,6 +391,7 @@ $('#btn-demo').addEventListener('click', () => {
   if (existing.length === 0 || confirm('将覆盖当前数据并载入 3 条示例记录，确定吗？')) {
     save(DEMO_DATA.map(normalizeRecord));
     refreshAll();
+    schedulePush();
     toast('已载入示例数据');
   }
 });
@@ -305,9 +402,11 @@ $('#btn-clear').addEventListener('click', () => {
   if (confirm(`将删除全部 ${n} 条记录且不可恢复，确定吗？（建议先导出JSON备份）`)) {
     save([]);
     refreshAll();
+    schedulePush();
     toast('已清空');
   }
 });
 
 // ---------- 初始化 ----------
 refreshAll();
+bootCloud();
