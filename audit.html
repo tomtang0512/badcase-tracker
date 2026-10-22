@@ -49,12 +49,12 @@ header p{font-size:12.5px;opacity:.85;margin-top:4px;}
 <body>
 <header>
   <h1>壮壮肉铺 · 食安抽查打分器</h1>
-  <p>V3.8 · 看见什么查什么，按实查项算得分率</p>
+  <p>V3.9 · 看见什么查什么，按实查项算得分率</p>
   <div class="meta">
     <input id="m-date" type="date">
     <input id="m-name" placeholder="检查人（选填）">
   </div>
-  <div class="core-tip">★ = 每次必查核心组（红线 5 项 + 帽式头套 + 冰箱温度 + 出餐照片）。其余项见了就打，不见不勉强。</div>
+  <div class="core-tip">★ = 每次必查核心组（红线 4 项 + 帽式头套 + 冰箱温度 + 出餐照片）。其余项见了就打，不见不勉强。</div>
 </header>
 <div class="wrap" id="list"></div>
 <div class="bar"><div class="bar-in">
@@ -63,39 +63,37 @@ header p{font-size:12.5px;opacity:.85;margin-top:4px;}
 </div></div>
 <div class="toast" id="toast">已复制</div>
 <script>
-const CORE = new Set([1,3,4,6,10,13,19]);
+const CORE = new Set([1,2,3,4,8,11,17]);
 const DATA = [
- {sec:'一、食材与新鲜',sum:'5 分 + 3 条红线',items:[
-  {no:1,name:'叶菜逐叶冲洗',std:'苦苣/叶菜逐片分开冲洗，边冲边检查',pts:0,red:true,redDesc:'发现虫/泥沙 → 一票否决'},
-  {no:2,name:'盐水浸泡',std:'先盐水泡 ≥10 分钟，再逐叶冲洗',pts:5},
-  {no:3,name:'原料效期',std:'到货剩余保质期 ≥1/3；超硬性效期仍在用 → 一票否决（腌肉5天/菜原料3天/沙拉碗当天现备/Pro碗腌菜1天/叶菜当天/虾仁解冻当天）',pts:0,red:true,redDesc:'超硬性效期仍在用 → 一票否决'},
-  {no:4,name:'隔夜食材复检',std:'前晚切好/腌好的菜、解冻的虾，用前必复检：蔫软、发黄发暗、发粘、异味不用',pts:0,red:true,redDesc:'未复检/用异常食材 → 一票否决'},
+ {sec:'一、食材与效期',sum:'2 条红线',items:[
+  {no:1,name:'原料效期',std:'到货剩余保质期 ≥1/3；超硬性效期仍在用 → 一票否决（腌肉5天/菜原料3天/沙拉碗当天现备/Pro碗腌菜1天/叶菜当天/虾仁解冻当天）',pts:0,red:true,redDesc:'超硬性效期仍在用 → 一票否决'},
+  {no:2,name:'隔夜食材复检',std:'前晚切好/腌好的菜、解冻的虾，用前必复检：蔫软、发黄发暗、发粘、异味不用',pts:0,red:true,redDesc:'未复检/用异常食材 → 一票否决'},
  ]},
  {sec:'二、储存',sum:'5 分',items:[
-  {no:5,name:'冰箱温度',std:'冷藏 0~4°C，冷冻 ≤-18°C，现场实测',pts:5},
+  {no:3,name:'冰箱温度',std:'冷藏 0~4°C，冷冻 ≤-18°C，现场实测',pts:5},
  ]},
  {sec:'三、人员',sum:'30 分',items:[
-  {no:6,name:'帽式头套',std:'罩住所有头发含鬓角碎发',pts:10},
-  {no:7,name:'手部',std:'无首饰、指甲短、碰生肉后洗手；洗手池有洗手液出水正常',pts:5},
-  {no:8,name:'健康证',std:'在有效期内，与在岗人员一致',pts:5},
-  {no:9,name:'禁烟',std:'店内任何区域无烟头、烟灰缸、吸烟痕迹',pts:10},
+  {no:4,name:'帽式头套',std:'罩住所有头发含鬓角碎发',pts:10},
+  {no:5,name:'手部',std:'无首饰、指甲短、碰生肉后洗手；洗手池有洗手液出水正常',pts:5},
+  {no:6,name:'健康证',std:'在有效期内，与在岗人员一致',pts:5},
+  {no:7,name:'禁烟',std:'店内任何区域无烟头、烟灰缸、吸烟痕迹',pts:10},
  ]},
  {sec:'四、加工与出餐',sum:'25 分 + 2 条红线',items:[
-  {no:10,name:'出餐检查',std:'装盒前目视：颜色/异物/包装。流程没执行 → 扣 15 分',pts:15,redLabel:'异物=一票否决'},
-  {no:11,name:'生肉处理',std:'切完生肉：刀、砧板、手洗净再碰其他；砧板刀具无裂缝发霉',pts:5},
-  {no:12,name:'出餐时效',std:'装盒后 30 分钟内出餐/进保温袋',pts:5},
-  {no:13,name:'熟度',std:'肉禽、虾全熟：无血水、肉色不透明',pts:0,red:true,redDesc:'未全熟 → 一票否决'},
+  {no:8,name:'出餐检查',std:'装盒前目视：菜叶中有无虫/泥沙、有无毛发等异物、颜色/包装。发现虫/泥沙/异物 → 一票否决；流程没执行 → 扣 15 分',pts:15,red:true,redDesc:'餐品中发现虫/泥沙/异物 → 一票否决'},
+  {no:9,name:'生肉处理',std:'切完生肉：刀、砧板、手洗净再碰其他；砧板刀具无裂缝发霉',pts:5},
+  {no:10,name:'出餐时效',std:'装盒后 30 分钟内出餐/进保温袋',pts:5},
+  {no:11,name:'熟度',std:'肉禽、虾全熟：无血水、肉色不透明',pts:0,red:true,redDesc:'未全熟 → 一票否决'},
  ]},
  {sec:'五、环境与器具',sum:'25 分',items:[
-  {no:14,name:'台面',std:'无积水污渍；抹布分用定期换',pts:5},
-  {no:15,name:'保温箱',std:'罩子完好干净，箱内无污渍异味',pts:5},
-  {no:16,name:'垃圾桶',std:'加盖、日产日清、不外溢、桶身干净',pts:5},
-  {no:17,name:'洗手池',std:'池边龙头无发霉发黑发臭；有洗手液、出水正常',pts:5},
-  {no:18,name:'地面',std:'无水渍油渍，随手拖干',pts:5},
+  {no:12,name:'台面',std:'无积水污渍；抹布分用定期换',pts:5},
+  {no:13,name:'保温箱',std:'罩子完好干净，箱内无污渍异味',pts:5},
+  {no:14,name:'垃圾桶',std:'加盖、日产日清、不外溢、桶身干净',pts:5},
+  {no:15,name:'洗手池',std:'池边龙头无发霉发黑发臭；有洗手液、出水正常',pts:5},
+  {no:16,name:'地面',std:'无水渍油渍，随手拖干',pts:5},
  ]},
  {sec:'六、留档',sum:'20 分',items:[
-  {no:19,name:'出餐照片',std:'水印相机当日留档（防碰瓷自证）',pts:10},
-  {no:20,name:'批次留样',std:'到货重点原料留样贴日期；每炉/每班成品留一盒贴日期；一袋用完再开新袋；冷藏 48h 到期丢弃',pts:10,dedNote:'缺生样 -10 / 缺熟样 -10'},
+  {no:17,name:'出餐照片',std:'水印相机当日留档（防碰瓷自证）',pts:10},
+  {no:18,name:'批次留样',std:'到货重点原料留样贴日期；每炉/每班成品留一盒贴日期；一袋用完再开新袋；冷藏 48h 到期丢弃',pts:10,dedNote:'缺生样 -10 / 缺熟样 -10'},
  ]},
 ];
 const state = {}; // no -> 'pass'|'fail'|'skip'   红线项 fail = 触发红线
@@ -142,7 +140,7 @@ function calc(){
     if(st==='pass'){checked++;}
     else if(st==='fail'){
       checked++;
-      if(it.red){redHit = it.redDesc || (it.no===10?'餐品中发现异物 → 一票否决':'');}
+      if(it.red){redHit = it.redDesc || '触发红线';}
       else{earns+=it.pts;ded+=it.pts;fails.push(`${it.no}.${it.name} -${it.pts}`);}
       const box=document.getElementById('ded-'+it.no); if(box) box.textContent = it.red?(it.redDesc||'触发红线'):(it.dedNote||(`扣 ${it.pts} 分`)); else if(box)box.textContent='';
     } else if(st==='skip'){checked++;}
