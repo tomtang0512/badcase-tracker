@@ -54,16 +54,16 @@ header p{font-size:12.5px;opacity:.85;margin-top:4px;}
     <input id="m-date" type="date">
     <input id="m-name" placeholder="检查人（选填）">
   </div>
-  <div class="core-tip">★ = 每次必查核心组（红线 4 项 + 帽式头套 + 冰箱温度 + 出餐照片）。其余项见了就打，不见不勉强。</div>
+  <div class="core-tip">★ = 每次必查核心组（红线 4 项 + 帽式头套 + 出餐照片）。其余项见了就打，不见不勉强。</div>
 </header>
 <div class="wrap" id="list"></div>
 <div class="bar"><div class="bar-in">
   <div class="stats" id="stats">请开始标记检查项</div>
-  <button class="copybtn" id="copy">复制抽查结果（发老板）</button>
+  <button class="copybtn" id="copy">复制抽查结果</button>
 </div></div>
 <div class="toast" id="toast">已复制</div>
 <script>
-const CORE = new Set([1,2,3,4,8,11,17]);
+const CORE = new Set([1,2,4,8,11,17]);
 const DATA = [
  {sec:'一、食材与效期',sum:'2 条红线',items:[
   {no:1,name:'原料效期',std:'到货剩余保质期 ≥1/3；超硬性效期仍在用 → 一票否决（腌肉5天/菜原料3天/沙拉碗当天现备/Pro碗腌菜1天/叶菜当天/虾仁解冻当天）',pts:0,red:true,redDesc:'超硬性效期仍在用 → 一票否决'},
@@ -182,11 +182,11 @@ document.getElementById('copy').addEventListener('click',()=>{
   if(r.coreMissing) lines.push(`备注：核心组尚有 ${r.coreMissing} 项未查`);
   const text = lines.join('\n');
   if(navigator.clipboard && navigator.clipboard.writeText){
-    navigator.clipboard.writeText(text).then(()=>toast('已复制，可粘贴发老板')).catch(()=>fallback(text));
+    navigator.clipboard.writeText(text).then(()=>toast('已复制，可粘贴')).catch(()=>fallback(text));
   } else fallback(text);
   function fallback(t){
     const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();
-    try{document.execCommand('copy');toast('已复制，可粘贴发老板');}catch(e){toast('复制失败，请截图');}
+    try{document.execCommand('copy');toast('已复制，可粘贴');}catch(e){toast('复制失败，请截图');}
     ta.remove();
   }
 });
