@@ -24,6 +24,7 @@ export const COL_VALUE = {
   date: (r) => String(r.date || '').slice(0, 7), // 按月聚合，避免日期值太多
   channel: (r) => r.channel || NA,
   customerName: (r) => String(r.customerName || '').trim() || NA,
+  phone: (r) => String(r.phone || '').trim() || NA,
   type: (r) => parseType(r.type).group, // 类型列按大类筛
   nature: (r) => r.nature || NA,
   cause: (r) => r.cause || NA,
@@ -167,11 +168,17 @@ function money(v, highlight) {
   return highlight ? `<span class="money-pos">${n.toFixed(1)}</span>` : n.toFixed(1);
 }
 
+function maskPhone(p) {
+  p = String(p || '').trim();
+  return p.length === 11 ? p.slice(0, 3) + '****' + p.slice(7) : (p || '-');
+}
+
 function recRow(r) {
   return `<tr data-id="${esc(r.id)}">
     <td>${esc(r.date)}</td>
     <td>${esc(r.channel || '-')}</td>
     <td>${esc(r.customerName || '-')}</td>
+    <td>${esc(maskPhone(r.phone))}</td>
     <td>${esc(r.type)}</td>
     <td>${natureTag(r.nature)}</td>
     <td>${esc(r.cause || '-')}</td>
