@@ -1,9 +1,9 @@
 import { save, normalizeRecord } from './store.js';
 
-const CSV_HEADERS = ['id', '发生日期', '渠道', '投诉类型', '问题描述', '定性', '归因维度', '留档证据', '处理结果',
-  '退款金额', '赔付金额', '物流费用', '挽回金额', '订单编号', '是否差评', '备注'];
-const CSV_KEYS = ['id', 'date', 'channel', 'type', 'desc', 'nature', 'cause', 'proof', 'result',
-  'refund', 'comp', 'logistics', 'saved', 'orderId', 'review', 'note'];
+const CSV_HEADERS = ['id', '发生日期', '渠道', '客户名', '投诉类型', '问题描述', '定性', '归因维度', '留档证据', '处理结果',
+'退款金额', '赔付金额', '物流费用', '挽回金额', '订单编号', '是否差评', '备注'];
+const CSV_KEYS = ['id', 'date', 'channel', 'customerName', 'type', 'desc', 'nature', 'cause', 'proof', 'result',
+'refund', 'comp', 'logistics', 'saved', 'orderId', 'review', 'note'];
 
 function todayStamp() {
   const d = new Date();
@@ -75,8 +75,8 @@ export function parseImportFile(filename, text) {
     if (idx.date === -1 || idx.nature === -1) throw new Error('CSV 表头不符合本工具导出格式');
     return rows.slice(1).map((cols) => {
       const get = (k) => (idx[k] > -1 ? cols[idx[k]] : '');
-      return normalizeRecord({
-        id: get('id'), date: get('date'), channel: get('channel'), type: get('type'), desc: get('desc'),
+return normalizeRecord({
+id: get('id'), date: get('date'), channel: get('channel'), customerName: get('customerName'), type: get('type'), desc: get('desc'),
         nature: get('nature'), cause: get('cause'), proof: get('proof'), result: get('result'),
         refund: get('refund'), comp: get('comp'), saved: get('saved'),
         orderId: get('orderId'), review: get('review'), note: get('note'),
