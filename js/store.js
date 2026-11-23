@@ -88,6 +88,7 @@ export function normalizeRecord(raw) {
     orderId: String(raw.orderId || ''),
 channel: pick(raw.channel, 'channel') || raw.channel || '',
 customerName: String(raw.customerName || '').trim(),
+  phone: String(raw.phone || '').replace(/[\s-]/g, ''),
 logistics: Math.round((Number(raw.logistics) || 0) * 10) / 10,
     photos: Array.isArray(raw.photos)
       ? raw.photos.filter((p) => typeof p === 'string' && p.startsWith('data:image/')).slice(0, 9)
